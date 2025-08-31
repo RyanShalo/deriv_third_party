@@ -3,10 +3,13 @@ import { observer } from 'mobx-react-lite';
 import { ToastContainer } from 'react-toastify';
 import AuthLoadingWrapper from '@/components/auth-loading-wrapper';
 import useLiveChat from '@/components/chat/useLiveChat';
+import CopyTradingPanel from '@/components/CopyTradingPanel';
+import FreeBotSection from '@/components/FreeBotSection';
 import { BOT_RESTRICTED_COUNTRIES_LIST } from '@/components/layout/header/utils';
 import ChunkLoader from '@/components/loader/chunk-loader';
 import { getUrlBase } from '@/components/shared';
 import TncStatusUpdateModal from '@/components/tnc-status-update-modal';
+import TraderAnalysisCircles from '@/components/TraderAnalysisCircles';
 import TransactionDetailsModal from '@/components/transaction-details';
 import { api_base, ApiHelpers, ServerTime } from '@/external/bot-skeleton';
 import { V2GetActiveToken } from '@/external/bot-skeleton/services/api/appId';
@@ -215,6 +218,13 @@ const AppContent = observer(() => {
         <AuthLoadingWrapper>
             <ThemeProvider theme={is_dark_mode_on ? 'dark' : 'light'}>
                 <BlocklyLoading />
+                {/* NEW SECTIONS START */}
+                <div style={{ display: 'flex', gap: 24, marginBottom: 24 }}>
+                    <TraderAnalysisCircles />
+                    <CopyTradingPanel />
+                    <FreeBotSection />
+                </div>
+                {/* NEW SECTIONS END */}
                 <div className='bot-dashboard bot' data-testid='dt_bot_dashboard'>
                     <Audio />
                     <Main />
