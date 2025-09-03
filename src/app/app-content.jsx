@@ -2,14 +2,10 @@ import React, { useEffect } from 'react';
 import { observer } from 'mobx-react-lite';
 import { ToastContainer } from 'react-toastify';
 import AuthLoadingWrapper from '@/components/auth-loading-wrapper';
-import useLiveChat from '@/components/chat/useLiveChat';
-import CopyTradingPanel from '@/components/CopyTradingPanel';
-import FreeBotSection from '@/components/FreeBotSection';
 import { BOT_RESTRICTED_COUNTRIES_LIST } from '@/components/layout/header/utils';
 import ChunkLoader from '@/components/loader/chunk-loader';
 import { getUrlBase } from '@/components/shared';
 import TncStatusUpdateModal from '@/components/tnc-status-update-modal';
-import TraderAnalysisCircles from '@/components/TraderAnalysisCircles';
 import TransactionDetailsModal from '@/components/transaction-details';
 import { api_base, ApiHelpers, ServerTime } from '@/external/bot-skeleton';
 import { V2GetActiveToken } from '@/external/bot-skeleton/services/api/appId';
@@ -49,24 +45,8 @@ const AppContent = observer(() => {
     const { connectionStatus } = useApiBase();
     const { initTrackJS } = useTrackjs();
 
-    // Initialize dev mode keyboard shortcuts
     useDevMode();
-
     initTrackJS(client.loginid);
-
-    const livechat_client_information = {
-        is_client_store_initialized: client?.is_logged_in ? !!client?.account_settings?.email : !!client,
-        is_logged_in: client?.is_logged_in,
-        loginid: client?.loginid,
-        landing_company_shortcode: client?.landing_company_shortcode,
-        currency: client?.currency,
-        residence: client?.residence,
-        email: client?.account_settings?.email,
-        first_name: client?.account_settings?.first_name,
-        last_name: client?.account_settings?.last_name,
-    };
-
-    useLiveChat(livechat_client_information);
 
     const token = V2GetActiveToken() ?? null;
     useIntercom(token);
@@ -131,9 +111,6 @@ const AppContent = observer(() => {
     }, []);
 
     React.useEffect(() => {
-        // Check if api is initialized and then subscribe to the api messages
-        // Also we should only subscribe to the messages once user is logged in
-        // And is not already subscribed to the messages
         if (!is_subscribed_to_msg_listener.current && client.is_logged_in && is_api_initialized && api_base?.api) {
             is_subscribed_to_msg_listener.current = true;
             msg_listener.current = api_base.api.onMessage()?.subscribe(handleMessage);
@@ -173,8 +150,6 @@ const AppContent = observer(() => {
         if (ApiHelpers?.instance?.active_symbols) {
             retrieveActiveSymbols();
         } else {
-            // This is a workaround to fix the issue where the active symbols are not loaded immediately
-            // when the API is initialized. Should be replaced with RxJS pubsub
             const intervalId = setInterval(() => {
                 if (ApiHelpers?.instance?.active_symbols) {
                     clearInterval(intervalId);
@@ -195,7 +170,6 @@ const AppContent = observer(() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [is_api_initialized]);
 
-    // use is_landing_company_loaded to know got details of accounts to identify should show an error or not
     React.useEffect(() => {
         if (client.is_logged_in && client.is_landing_company_loaded && is_api_initialized) {
             changeActiveSymbolLoadingState();
@@ -218,13 +192,11 @@ const AppContent = observer(() => {
         <AuthLoadingWrapper>
             <ThemeProvider theme={is_dark_mode_on ? 'dark' : 'light'}>
                 <BlocklyLoading />
-                {/* NEW SECTIONS START */}
-                <div style={{ display: 'flex', gap: 24, marginBottom: 24 }}>
+                {/* <div style={{ display: 'flex', gap: 24, marginBottom: 24 }}>
                     <TraderAnalysisCircles />
                     <CopyTradingPanel />
                     <FreeBotSection />
-                </div>
-                {/* NEW SECTIONS END */}
+                </div> */}
                 <div className='bot-dashboard bot' data-testid='dt_bot_dashboard'>
                     <Audio />
                     <Main />

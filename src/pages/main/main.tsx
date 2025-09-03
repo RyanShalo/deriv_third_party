@@ -29,8 +29,17 @@ import Dashboard from '../dashboard';
 import RunStrategy from '../dashboard/run-strategy';
 import './main.scss';
 
+// Existing lazy imports
 const ChartWrapper = lazy(() => import('../chart/chart-wrapper'));
 const Tutorial = lazy(() => import('../tutorials'));
+
+// New lazy imports for your added tabs
+const AnalysisTool = lazy(() => import('../analysis-tool'));
+const FreeBots = lazy(() => import('../free-bots'));
+const AI = lazy(() => import('../ai'));
+const CopyTrading = lazy(() => import('../copy-trading'));
+const TradingView = lazy(() => import('../trading-view'));
+const RiskManager = lazy(() => import('../risk-manager'));
 
 const AppWrapper = observer(() => {
     const { connectionStatus } = useApiBase();
@@ -62,7 +71,11 @@ const AppWrapper = observer(() => {
     const { clear } = summary_card;
     const { DASHBOARD, BOT_BUILDER } = DBOT_TABS;
     const init_render = React.useRef(true);
-    const hash = ['dashboard', 'bot_builder', 'chart', 'tutorial'];
+    // Update hash to reflect all tabs, in the same order as below
+    const hash = [
+        'dashboard', 'bot_builder', 'chart', 'tutorial',
+        'analysis_tool', 'free_bots', 'ai', 'copy_trading', 'trading_view', 'risk_manager'
+    ];
     const { isDesktop } = useDevice();
     const location = useLocation();
     const navigate = useNavigate();
@@ -77,42 +90,41 @@ const AppWrapper = observer(() => {
     };
     const active_hash_tab = GetHashedValue(active_tab);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const el_dashboard = document.getElementById('id-dbot-dashboard');
         const el_tutorial = document.getElementById('id-tutorials');
 
-        const observer_dashboard = new window.IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setLeftTabShadow(false);
-                    return;
-                }
-                setLeftTabShadow(true);
-            },
-            {
-                root: null,
-                threshold: 0.5, // set offset 0.1 means trigger if atleast 10% of element in viewport
-            }
-        );
+        if (el_dashboard && el_tutorial) {
+            const observer_dashboard = new window.IntersectionObserver(
+                ([entry]) => {
+                    if (entry.isIntersecting) {
+                        setLeftTabShadow(false);
+                        return;
+                    }
+                    setLeftTabShadow(true);
+                },
+                { root: null, threshold: 0.5 }
+            );
+            const observer_tutorial = new window.IntersectionObserver(
+                ([entry]) => {
+                    if (entry.isIntersecting) {
+                        setRightTabShadow(false);
+                        return;
+                    }
+                    setRightTabShadow(true);
+                },
+                { root: null, threshold: 0.5 }
+            );
+            observer_dashboard.observe(el_dashboard);
+            observer_tutorial.observe(el_tutorial);
+            return () => {
+                observer_dashboard.disconnect();
+                observer_tutorial.disconnect();
+            };
+        }
+    }, []);
 
-        const observer_tutorial = new window.IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setRightTabShadow(false);
-                    return;
-                }
-                setRightTabShadow(true);
-            },
-            {
-                root: null,
-                threshold: 0.5, // set offset 0.1 means trigger if atleast 10% of element in viewport
-            }
-        );
-        observer_dashboard.observe(el_dashboard);
-        observer_tutorial.observe(el_tutorial);
-    });
-
-    React.useEffect(() => {
+    useEffect(() => {
         if (connectionStatus !== CONNECTION_STATUS.OPENED) {
             const is_bot_running = document.getElementById('db-animation__stop-button') !== null;
             if (is_bot_running) {
@@ -137,8 +149,7 @@ const AppWrapper = observer(() => {
         }
     };
 
-    React.useEffect(() => {
-        // Run on mount and when active tab changes
+    useEffect(() => {
         updateTabShadowsHeight();
 
         if (is_open) {
@@ -172,9 +183,9 @@ const AppWrapper = observer(() => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [active_tab]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const trashcan_init_id = setTimeout(() => {
-            if (active_tab === BOT_BUILDER && Blockly?.derivWorkspace?.trashcan) {
+            if (active_tab === BOT_BUILDER && window.Blockly?.derivWorkspace?.trashcan) {
                 const trashcanY = window.innerHeight - 250;
                 let trashcanX;
                 if (is_drawer_open) {
@@ -182,21 +193,18 @@ const AppWrapper = observer(() => {
                 } else {
                     trashcanX = isDbotRTL() ? 20 : window.innerWidth - 100;
                 }
-                Blockly?.derivWorkspace?.trashcan?.setTrashcanPosition(trashcanX, trashcanY);
+                window.Blockly?.derivWorkspace?.trashcan?.setTrashcanPosition(trashcanX, trashcanY);
             }
         }, 100);
 
         return () => {
-            clearTimeout(trashcan_init_id); // Clear the timeout on unmount
+            clearTimeout(trashcan_init_id);
         };
-        //eslint-disable-next-line react-hooks/exhaustive-deps
     }, [active_tab, is_drawer_open]);
 
     useEffect(() => {
         let timer: ReturnType<typeof setTimeout>;
         if (dashboard_strategies.length > 0) {
-            // Needed to pass this to the Callback Queue as on tab changes
-            // document title getting override by 'Bot | Deriv' only
             timer = setTimeout(() => {
                 updateWorkspaceName();
             });
@@ -217,13 +225,13 @@ const AppWrapper = observer(() => {
                 }, 10);
             }
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         [active_tab]
     );
 
     const handleLoginGeneration = () => {
         window.location.replace(generateOAuthURL());
     };
+
     return (
         <React.Fragment>
             <div className='main'>
@@ -233,8 +241,9 @@ const AppWrapper = observer(() => {
                     })}
                 >
                     <div>
-                        {!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}{' '}
+                        {!isDesktop && left_tab_shadow && <span className='tabs-shadow tabs-shadow--left' />}
                         <Tabs active_index={active_tab} className='main__tabs' onTabItemClick={handleTabChange} top>
+                            {/* Dashboard */}
                             <div
                                 label={
                                     <>
@@ -250,6 +259,7 @@ const AppWrapper = observer(() => {
                             >
                                 <Dashboard handleTabChange={handleTabChange} />
                             </div>
+                            {/* Bot Builder */}
                             <div
                                 label={
                                     <>
@@ -262,7 +272,10 @@ const AppWrapper = observer(() => {
                                     </>
                                 }
                                 id='id-bot-builder'
-                            />
+                            >
+                                {/* You can add content for Bot Builder tab here if needed */}
+                            </div>
+                            {/* Charts */}
                             <div
                                 label={
                                     <>
@@ -286,6 +299,7 @@ const AppWrapper = observer(() => {
                                     <ChartWrapper show_digits_stats={false} />
                                 </Suspense>
                             </div>
+                            {/* Tutorials */}
                             <div
                                 label={
                                     <>
@@ -310,8 +324,92 @@ const AppWrapper = observer(() => {
                                     </Suspense>
                                 </div>
                             </div>
+                            {/* Analysis Tool */}
+                            <div
+                                label={
+                                    <>
+                                        <span role="img" aria-label="analysis" style={{ marginRight: 4 }}>📊</span>
+                                        <Localize i18n_default_text="Analysis Tool" />
+                                    </>
+                                }
+                                id='id-analysis-tool'
+                            >
+                                <Suspense fallback={<ChunkLoader message="Loading Analysis Tool..." />}>
+                                    <AnalysisTool />
+                                </Suspense>
+                            </div>
+                            {/* Free Bots */}
+                            <div
+                                label={
+                                    <>
+                                        <span role="img" aria-label="bot" style={{ marginRight: 4 }}>🤖</span>
+                                        <Localize i18n_default_text="Free Bots" />
+                                    </>
+                                }
+                                id='id-free-bots'
+                            >
+                                <Suspense fallback={<ChunkLoader message="Loading free Bots..." />}>
+                                    <FreeBots />
+                                </Suspense>
+                            </div>
+                            {/* AI */}
+                            <div
+                                label={
+                                    <>
+                                        <span role="img" aria-label="ai" style={{ marginRight: 4 }}>🧠</span>
+                                        <Localize i18n_default_text="AI" />
+                                    </>
+                                }
+                                id='id-ai'
+                            >
+                                <Suspense fallback={<ChunkLoader message="Loading ai..." />}>
+                                    <AI />
+                                </Suspense>
+                            </div>
+                            {/* Copy Trading */}
+                            <div
+                                label={
+                                    <>
+                                        <span role="img" aria-label="copy trading" style={{ marginRight: 4 }}>🔄</span>
+                                        <Localize i18n_default_text="Copy Trading" />
+                                    </>
+                                }
+                                id='id-copy-trading'
+                            >
+                                <Suspense fallback={<ChunkLoader message="Loading Copy Trading..." />}>
+                                    <CopyTrading />
+                                </Suspense>
+                            </div>
+                            {/* Trading View */}
+                            <div
+                                label={
+                                    <>
+                                        <span role="img" aria-label="trading view" style={{ marginRight: 4 }}>📈</span>
+                                        <Localize i18n_default_text="Trading View" />
+                                    </>
+                                }
+                                id='id-trading-view'
+                            >
+                                <Suspense fallback={<ChunkLoader message="Loading Trading View..." />}>
+                                    <TradingView />
+                                </Suspense>
+                            </div>
+                            {/* Risk Manager */}
+                            <div
+                                label={
+                                    <>
+                                        <span role="img" aria-label="risk manager" style={{ marginRight: 4 }}>🛡️</span>
+                                        <Localize i18n_default_text="Risk Manager" />
+                                    </>
+                                }
+                                id='id-risk-manager'
+                            >
+                                <Suspense fallback={<ChunkLoader message="Loading Risk Manager..." />}>
+                                    <RiskManager />
+                                </Suspense>
+                            </div>
                         </Tabs>
-                        {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}{' '}
+                        {!isDesktop && right_tab_shadow && <span className='tabs-shadow tabs-shadow--right' />}
                     </div>
                 </div>
             </div>
@@ -337,7 +435,7 @@ const AppWrapper = observer(() => {
                 portal_element_id='modal_root'
                 title={title}
                 login={handleLoginGeneration}
-                dismissable={dismissable} // Prevents closing on outside clicks
+                dismissable={dismissable}
                 is_closed_on_cancel={is_closed_on_cancel}
             >
                 {message}
