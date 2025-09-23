@@ -2,14 +2,14 @@ import { LocalStorageConstants, LocalStorageUtils, URLUtils } from '@deriv-com/u
 import { isStaging } from '../url/helpers';
 
 export const APP_IDS = {
-    LOCALHOST: 103104,
-    TMP_STAGING: 103104,
-    STAGING: 103104,
-    STAGING_BE: 1031044,
-    STAGING_ME: 103104,
-    PRODUCTION: 103104,
-    PRODUCTION_BE: 103104,
-    PRODUCTION_ME: 103104,
+    LOCALHOST: 36300,
+    TMP_STAGING: 64584,
+    STAGING: 29934,
+    STAGING_BE: 29934,
+    STAGING_ME: 29934,
+    PRODUCTION: 65555,
+    PRODUCTION_BE: 65556,
+    PRODUCTION_ME: 65557,
 };
 
 export const livechat_license_id = 12049137;
@@ -21,7 +21,6 @@ export const domain_app_ids = {
     'staging-dbot.deriv.be': APP_IDS.STAGING_BE,
     'staging-dbot.deriv.me': APP_IDS.STAGING_ME,
     'dbot.deriv.com': APP_IDS.PRODUCTION,
-    'deriv-third-party-1wbb.vercel.app': APP_IDS.PRODUCTION, 
     'dbot.deriv.be': APP_IDS.PRODUCTION_BE,
     'dbot.deriv.me': APP_IDS.PRODUCTION_ME,
 };
