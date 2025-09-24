@@ -49,20 +49,20 @@ const getDefaultServerURL = () => {
         return 'ws.derivws.com';
     }
 
-    let active_loginid_from_url;
     const search = window.location.search;
+    let active_loginid_from_url;
     if (search) {
         const params = new URLSearchParams(document.location.search.substring(1));
         active_loginid_from_url = params.get('acct1');
     }
 
     const loginid = window.localStorage.getItem('active_loginid') ?? active_loginid_from_url;
-    const is_real = loginid && !/^(VRT|VRW)/.test(loginid);
 
-    const server = is_real ? 'green' : 'blue';
-    const server_url = `${server}.derivws.com`;
+    // ✅ If no loginid, always default to green (real) for production app IDs
+    if (!loginid) return 'green.derivws.com';
 
-    return server_url;
+    const is_real = !/^(VRT|VRW)/.test(loginid);
+    return `${is_real ? 'green' : 'blue'}.derivws.com`;
 };
 
 export const getDefaultAppIdAndUrl = () => {
