@@ -71,8 +71,7 @@ const AppHeader = observer(({ isAuthenticating }: TAppHeaderProps) => {
                     <Button
                         tertiary
                         onClick={() => {
-                            window.location.href =
-                                'https://oauth.deriv.com/oauth2/authorize?app_id=103104&l=en&brand=deriv';
+                            window.location.replace(generateOAuthURL());
                         }}
                     >
                         <Localize i18n_default_text='Log in' />
