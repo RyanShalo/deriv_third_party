@@ -148,7 +148,6 @@ export const generateOAuthURL = () => {
     const original_url = new URL(oauth_url);
     const hostname = window.location.hostname;
 
-    // First priority: Check for configured server URLs (for QA/testing environments)
     const configured_server_url = (LocalStorageUtils.getValue(LocalStorageConstants.configServerURL) ||
         localStorage.getItem('config.server_url')) as string;
 
@@ -162,19 +161,26 @@ export const generateOAuthURL = () => {
     ) {
         original_url.hostname = configured_server_url;
     } else if (original_url.hostname.includes('oauth.deriv.')) {
-        // Second priority: Domain-based OAuth URL setting for .me and .be domains
         if (hostname.includes('.deriv.me')) {
             original_url.hostname = 'oauth.deriv.me';
         } else if (hostname.includes('.deriv.be')) {
             original_url.hostname = 'oauth.deriv.be';
         } else {
-            // Fallback to original logic for other domains
-            const current_domain = getCurrentProductionDomain();
-            if (current_domain) {
-                const domain_suffix = current_domain.replace(/^[^.]+\./, '');
-                original_url.hostname = `oauth.${domain_suffix}`;
-            }
+            // ✅ Always fallback to oauth.deriv.com for unknown/custom domains
+            original_url.hostname = 'oauth.deriv.com';
         }
     }
+
+    // ✅ Force correct App ID for your custom production domain
+    const current_domain = getCurrentProductionDomain();
+    if (hostname.endsWith('vercel.app')) {
+        // use production app id
+        original_url.searchParams.set('app_id', APP_IDS.PRODUCTION.toString());
+    } else if (current_domain && domain_app_ids[current_domain as keyof typeof domain_app_ids]) {
+        const app_id = domain_app_ids[current_domain as keyof typeof domain_app_ids];
+        original_url.searchParams.set('app_id', app_id.toString());
+    }
+
     return original_url.toString() || oauth_url;
 };
+
