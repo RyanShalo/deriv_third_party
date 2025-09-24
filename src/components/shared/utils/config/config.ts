@@ -20,7 +20,7 @@ export const domain_app_ids = {
     'staging-dbot.deriv.com': APP_IDS.STAGING,
     'staging-dbot.deriv.be': APP_IDS.STAGING_BE,
     'staging-dbot.deriv.me': APP_IDS.STAGING_ME,
-    'deriv-third-party.vercel.app': APP_IDS.PRODUCTION,
+    'dbot.deriv.com': APP_IDS.PRODUCTION,
     'dbot.deriv.be': APP_IDS.PRODUCTION_BE,
     'dbot.deriv.me': APP_IDS.PRODUCTION_ME,
 };
