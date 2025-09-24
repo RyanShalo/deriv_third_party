@@ -44,13 +44,17 @@ export const isTestLink = () => {
 
 export const isLocal = () => /localhost(:\d+)?$/i.test(window.location.hostname);
 
+/**
+ * ✅ Chooses the correct websocket server (green for real, blue for demo).
+ * If no loginid yet, always fallback to green for production.
+ */
 const getDefaultServerURL = () => {
     if (isTestLink()) {
         return 'ws.derivws.com';
     }
 
-    const search = window.location.search;
     let active_loginid_from_url;
+    const search = window.location.search;
     if (search) {
         const params = new URLSearchParams(document.location.search.substring(1));
         active_loginid_from_url = params.get('acct1');
@@ -58,8 +62,10 @@ const getDefaultServerURL = () => {
 
     const loginid = window.localStorage.getItem('active_loginid') ?? active_loginid_from_url;
 
-    // ✅ If no loginid, always default to green (real) for production app IDs
-    if (!loginid) return 'green.derivws.com';
+    if (!loginid) {
+        // ✅ fallback to real server for production
+        return 'green.derivws.com';
+    }
 
     const is_real = !/^(VRT|VRW)/.test(loginid);
     return `${is_real ? 'green' : 'blue'}.derivws.com`;
@@ -100,9 +106,7 @@ export const getSocketURL = () => {
     const local_storage_server_url = window.localStorage.getItem('config.server_url');
     if (local_storage_server_url) return local_storage_server_url;
 
-    const server_url = getDefaultServerURL();
-
-    return server_url;
+    return getDefaultServerURL();
 };
 
 export const checkAndSetEndpointFromUrl = () => {
@@ -142,6 +146,10 @@ export const getDebugServiceWorker = () => {
     return false;
 };
 
+/**
+ * ✅ Always fallback OAuth to deriv.com for custom domains like Vercel.
+ * Ensures correct app_id is injected.
+ */
 export const generateOAuthURL = () => {
     const { getOauthURL } = URLUtils;
     const oauth_url = getOauthURL();
@@ -166,21 +174,22 @@ export const generateOAuthURL = () => {
         } else if (hostname.includes('.deriv.be')) {
             original_url.hostname = 'oauth.deriv.be';
         } else {
-            // ✅ Always fallback to oauth.deriv.com for unknown/custom domains
+            // ✅ Fallback for all custom domains (Vercel, Netlify, Render, etc.)
             original_url.hostname = 'oauth.deriv.com';
         }
     }
 
-    // ✅ Force correct App ID for your custom production domain
+    // ✅ Correct App ID injection
     const current_domain = getCurrentProductionDomain();
     if (hostname.endsWith('vercel.app')) {
-        // use production app id
         original_url.searchParams.set('app_id', APP_IDS.PRODUCTION.toString());
     } else if (current_domain && domain_app_ids[current_domain as keyof typeof domain_app_ids]) {
         const app_id = domain_app_ids[current_domain as keyof typeof domain_app_ids];
         original_url.searchParams.set('app_id', app_id.toString());
+    } else {
+        // fallback
+        original_url.searchParams.set('app_id', APP_IDS.PRODUCTION.toString());
     }
 
     return original_url.toString() || oauth_url;
 };
-
