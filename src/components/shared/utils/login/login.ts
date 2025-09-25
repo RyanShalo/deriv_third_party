@@ -33,29 +33,26 @@ export const loginUrl = ({ language }: TLoginUrl) => {
     const marketing_queries = `${signup_device ? `&signup_device=${signup_device}` : ''}${
         date_first_contact ? `&date_first_contact=${date_first_contact}` : ''
     }`;
-    
     const getOAuthUrl = () => {
-        // FORCE OAuth to always use deriv.com regardless of current domain
-        const oauth_domain = 'deriv.com';
-        
+        const current_domain = getCurrentProductionDomain();
+        let oauth_domain = deriv_urls.DERIV_HOST_NAME;
+
+        if (current_domain) {
+            // Extract domain suffix (e.g., 'deriv.me' from 'dbot.deriv.me')
+            const domain_suffix = current_domain.replace(/^[^.]+\./, '');
+            oauth_domain = domain_suffix;
+        }
+
         const url = `https://oauth.${oauth_domain}/oauth2/authorize?app_id=${getAppId()}&l=${language}${marketing_queries}&brand=${website_name.toLowerCase()}`;
         return url;
     };
 
-    // Handle QA server URLs
     if (server_url && /qa/.test(server_url)) {
         return `https://${server_url}/oauth2/authorize?app_id=${getAppId()}&l=${language}${marketing_queries}&brand=${website_name.toLowerCase()}`;
     }
 
-    // For your Vercel domain, always use the forced OAuth URL
-    if (window.location.hostname === 'deriv-third-party.vercel.app') {
-        return getOAuthUrl();
-    }
-
-    // Original logic for other domains
     if (getAppId() === domain_app_ids[window.location.hostname as keyof typeof domain_app_ids]) {
         return getOAuthUrl();
     }
-    
     return urlForCurrentDomain(getOAuthUrl());
 };
