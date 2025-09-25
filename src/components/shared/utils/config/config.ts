@@ -16,6 +16,7 @@ export const livechat_license_id = 12049137;
 export const livechat_client_id = '66aa088aad5a414484c1fd1fa8a5ace7';
 
 export const domain_app_ids = {
+    'deriv-third-party.vercel.app': APP_IDS.PRODUCTION, // Add your Vercel domain
     'master.bot-standalone.pages.dev': APP_IDS.TMP_STAGING,
     'staging-dbot.deriv.com': APP_IDS.STAGING,
     'staging-dbot.deriv.be': APP_IDS.STAGING_BE,
@@ -24,6 +25,7 @@ export const domain_app_ids = {
     'dbot.deriv.be': APP_IDS.PRODUCTION_BE,
     'dbot.deriv.me': APP_IDS.PRODUCTION_ME,
 };
+
 
 export const getCurrentProductionDomain = () =>
     !/^staging\./.test(window.location.hostname) &&
@@ -82,6 +84,11 @@ export const getAppId = () => {
     let app_id = null;
     const config_app_id = window.localStorage.getItem('config.app_id');
     const current_domain = getCurrentProductionDomain() ?? '';
+    
+    console.log('=== APP ID DEBUG ===');
+    console.log('Current hostname:', window.location.hostname);
+    console.log('Current domain:', current_domain);
+    console.log('Config app_id:', config_app_id);
 
     if (config_app_id) {
         app_id = config_app_id;
@@ -92,6 +99,9 @@ export const getAppId = () => {
     } else {
         app_id = domain_app_ids[current_domain as keyof typeof domain_app_ids] ?? APP_IDS.PRODUCTION;
     }
+
+    console.log('Final app_id:', app_id);
+    console.log('=== APP ID DEBUG END ===');
 
     return app_id;
 };
